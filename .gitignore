@@ -12,6 +12,7 @@ dist
 dist-ssr
 .netlify
 .env
+deno.lock
 *.local
 
 # Editor directories and files
