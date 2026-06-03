@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="NWS Forecast Viewer">
+  <rect width="64" height="64" rx="12" fill="#17324d"/>
+  <circle cx="25" cy="25" r="10" fill="#f3c66f"/>
+  <path d="M20 42h25a9 9 0 0 0 0-18 13 13 0 0 0-24-4 10 10 0 0 0-1 20Z" fill="#ffffff"/>
+  <path d="M16 47h31" stroke="#0b6e69" stroke-width="4" stroke-linecap="round"/>
+</svg>
