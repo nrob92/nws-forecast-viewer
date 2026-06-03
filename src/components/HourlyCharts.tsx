@@ -17,6 +17,8 @@ type HourlyChartsProps = {
   points: HourlyPoint[];
 };
 
+const CHART_INITIAL_DIMENSION = { width: 720, height: 288 };
+
 export function HourlyCharts({ points }: HourlyChartsProps) {
   const chartData = points.slice(0, 24).map((point) => ({
     ...point,
@@ -51,7 +53,13 @@ export function HourlyCharts({ points }: HourlyChartsProps) {
               role="img"
               aria-label="Line chart showing hourly temperature for the next 24 hours."
             >
-              <ResponsiveContainer width="100%" height="100%" minWidth={320} minHeight={240}>
+              <ResponsiveContainer
+                width="100%"
+                height="100%"
+                minWidth={320}
+                minHeight={240}
+                initialDimension={CHART_INITIAL_DIMENSION}
+              >
                 <LineChart data={chartData} margin={{ top: 16, right: 24, left: 0, bottom: 8 }}>
                   <CartesianGrid stroke="#e4e8e2" strokeDasharray="3 3" />
                   <XAxis dataKey="hourLabel" tick={{ fill: '#52616f', fontSize: 12 }} />
@@ -80,7 +88,13 @@ export function HourlyCharts({ points }: HourlyChartsProps) {
               role="img"
               aria-label="Area chart showing hourly precipitation probability for the next 24 hours."
             >
-              <ResponsiveContainer width="100%" height="100%" minWidth={320} minHeight={240}>
+              <ResponsiveContainer
+                width="100%"
+                height="100%"
+                minWidth={320}
+                minHeight={240}
+                initialDimension={CHART_INITIAL_DIMENSION}
+              >
                 <AreaChart data={chartData} margin={{ top: 16, right: 24, left: 0, bottom: 8 }}>
                   <CartesianGrid stroke="#e4e8e2" strokeDasharray="3 3" />
                   <XAxis dataKey="hourLabel" tick={{ fill: '#52616f', fontSize: 12 }} />
