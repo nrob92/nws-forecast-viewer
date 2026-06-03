@@ -1,18 +1,20 @@
-import { lazy, Suspense, useEffect } from 'react';
+import { lazy, Suspense, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Clock, MapPinned, RadioTower, RefreshCw } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
+import { AiForecastPanel } from '../components/AiForecastPanel';
 import { AlertsPanel } from '../components/AlertsPanel';
 import { ForecastCards } from '../components/ForecastCards';
 import { LocationSearch } from '../components/LocationSearch';
 import { ErrorPanel, LoadingPanel } from '../components/StatusPanel';
-import { useLocationState } from '../context/LocationContext';
+import { DEFAULT_LOCATION, useLocationState } from '../context/LocationContext';
 import {
   compactLocationLabel,
   formatCoordinate,
   formatDateTime,
   formatPercent,
 } from '../lib/format';
+import { buildForecastAiContext } from '../lib/aiContext';
 import {
   getAlerts,
   getForecast,
@@ -33,7 +35,12 @@ export function ForecastPage() {
     const rawLat = searchParams.get('lat');
     const rawLon = searchParams.get('lon');
 
+    if (rawLat === null && rawLon === null) {
+      return;
+    }
+
     if (!rawLat || !rawLon) {
+      setSearchParams({}, { replace: true });
       return;
     }
 
@@ -41,7 +48,9 @@ export function ForecastPage() {
     const lon = Number(rawLon);
     const label = searchParams.get('label') || 'Shared location';
 
-    if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+    if (!isSupportedSharedCoordinate(lat, lon)) {
+      selectLocation(DEFAULT_LOCATION);
+      setSearchParams({}, { replace: true });
       return;
     }
 
@@ -60,7 +69,13 @@ export function ForecastPage() {
       longitude: lon,
       source: 'url',
     });
-  }, [searchParams, selectLocation, selectedLocation.latitude, selectedLocation.longitude]);
+  }, [
+    searchParams,
+    selectLocation,
+    selectedLocation.latitude,
+    selectedLocation.longitude,
+    setSearchParams,
+  ]);
 
   const pointQuery = useQuery({
     queryKey: ['nws-point', selectedLocation.latitude, selectedLocation.longitude],
@@ -97,6 +112,13 @@ export function ForecastPage() {
   const nextHour = hourlyQuery.data?.[0];
   const isInitialLoading = pointQuery.isLoading || forecastQuery.isLoading || hourlyQuery.isLoading;
   const hasDataError = pointQuery.isError || forecastQuery.isError || hourlyQuery.isError;
+  const aiContext = useMemo(
+    () =>
+      forecastQuery.data
+        ? buildForecastAiContext(selectedLocation, forecastQuery.data, alertsQuery.data ?? [])
+        : null,
+    [alertsQuery.data, forecastQuery.data, selectedLocation],
+  );
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
@@ -187,6 +209,8 @@ export function ForecastPage() {
             />
           ) : null}
 
+          <AiForecastPanel context={aiContext} />
+
           <AlertsPanel alerts={alertsQuery.data ?? []} isLoading={alertsQuery.isLoading} />
 
           {forecastQuery.data ? <ForecastCards periods={forecastQuery.data} /> : null}
@@ -217,6 +241,26 @@ export function ForecastPage() {
       </div>
     </div>
   );
+}
+
+function isSupportedSharedCoordinate(latitude: number, longitude: number) {
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+    return false;
+  }
+
+  const isNullIsland = Math.abs(latitude) < 0.0001 && Math.abs(longitude) < 0.0001;
+  if (isNullIsland) {
+    return false;
+  }
+
+  const isUsMainlandAlaskaHawaiiOrCaribbean =
+    latitude >= 17 && latitude <= 72 && longitude >= -180 && longitude <= -64;
+  const isGuamOrNorthernMarianas =
+    latitude >= 12 && latitude <= 22 && longitude >= 140 && longitude <= 150;
+  const isAmericanSamoa =
+    latitude >= -15 && latitude <= -10 && longitude >= -172 && longitude <= -167;
+
+  return isUsMainlandAlaskaHawaiiOrCaribbean || isGuamOrNorthernMarianas || isAmericanSamoa;
 }
 
 function HeroMetric({ label, value }: { label: string; value: string }) {

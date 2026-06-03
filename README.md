@@ -15,6 +15,8 @@ Personal demo using the public NWS API. Not affiliated with or endorsed by NOAA/
 NWS Forecast Viewer is a portfolio project for data-heavy federal weather interfaces. It resolves a
 city, ZIP, or address into coordinates, maps those coordinates to an NWS forecast grid, and presents
 7-day periods, hourly meteogram-style charts, and active alerts in an accessible React workspace.
+It also includes a small AI layer: one plain-language forecast summary card and one forecast
+question box, both grounded in the already-loaded NWS forecast and alert data.
 
 The app uses a Netlify Functions proxy so requests to api.weather.gov and Nominatim include
 descriptive identification headers and so upstream NWS URLs are validated before fetching.
@@ -27,6 +29,7 @@ descriptive identification headers and so upstream NWS URLs are validated before
 - TanStack Query
 - Recharts
 - Netlify Functions
+- OpenAI Node SDK
 - Vitest + React Testing Library
 - vitest-axe / axe-core
 
@@ -43,6 +46,7 @@ Set these values in `.env` before using live APIs:
 ```bash
 NWS_USER_AGENT="nws-forecast-viewer-demo/1.0 (you@example.com)"
 NOMINATIM_USER_AGENT="nws-forecast-viewer-demo/1.0 (you@example.com)"
+OPENAI_API_KEY="sk-your-openai-api-key"
 ```
 
 Local Netlify dev runs the app and functions together at:
@@ -105,6 +109,21 @@ Trade-offs: The API does not geocode city names directly, and browser apps canno
 
 Alternatives: A paid weather API would simplify some response shapes but would not demonstrate NWS
 domain familiarity.
+
+### AI grounding and server-side calls
+
+Why: The AI layer is intentionally interpretive, not predictive. It sends only the forecast periods,
+alerts, and selected location already displayed in the app, and the system prompt tells the model to
+answer only from that JSON context.
+
+Trade-offs: This keeps the AI output constrained and auditable, but it means the assistant must say
+when the loaded data does not cover a user question.
+
+Security: OpenAI calls are made only from the Netlify Function at `/api/ai`, using
+`OPENAI_API_KEY` from the server environment. The browser never receives the API key.
+
+Alternatives: Calling OpenAI directly from the browser would be simpler but would expose the API key
+and make the app harder to deploy safely.
 
 ## Accessibility Statement
 

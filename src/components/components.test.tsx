@@ -3,11 +3,13 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactElement } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { AiForecastPanel } from './AiForecastPanel';
 import { AlertsPanel } from './AlertsPanel';
 import { ForecastCards } from './ForecastCards';
 import { HourlyCharts } from './HourlyCharts';
 import { LocationSearch } from './LocationSearch';
 import type { AlertSummary, ForecastPeriod, HourlyPoint } from '../types/weather';
+import type { ForecastAiContext } from '../lib/aiContext';
 
 const forecast: ForecastPeriod[] = [
   {
@@ -113,6 +115,67 @@ describe('forecast components', () => {
       expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({ name: 'New York' })),
     );
   });
+
+  it('requests AI summary and question answers with provided forecast context', async () => {
+    const user = userEvent.setup();
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockResolvedValueOnce(
+          new Response(JSON.stringify({ text: 'Rain likely after 3 PM. Wind advisory until 8 PM.' }), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+          }),
+        )
+        .mockResolvedValueOnce(
+          new Response(JSON.stringify({ text: 'Yes, the forecast data shows rain likely.' }), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+          }),
+        ),
+    );
+
+    renderWithQuery(<AiForecastPanel context={aiContext} />);
+
+    await user.click(screen.getByRole('button', { name: /summarize/i }));
+    expect(await screen.findByText(/Rain likely after 3 PM/i)).toBeInTheDocument();
+
+    await user.type(screen.getByLabelText(/forecast summary or question/i), 'Do I need an umbrella?');
+    await user.click(screen.getByRole('button', { name: /^ask$/i }));
+    expect(await screen.findByText(/forecast data shows rain likely/i)).toBeInTheDocument();
+
+    expect(fetch).toHaveBeenNthCalledWith(
+      1,
+      '/api/ai',
+      expect.objectContaining({
+        method: 'POST',
+        body: expect.stringContaining('"mode":"summary"'),
+      }),
+    );
+    expect(fetch).toHaveBeenNthCalledWith(
+      2,
+      '/api/ai',
+      expect.objectContaining({
+        method: 'POST',
+        body: expect.stringContaining('"question":"Do I need an umbrella?"'),
+      }),
+    );
+  });
+
+  it('fills the prompt when a rotating example question is selected', async () => {
+    const user = userEvent.setup();
+
+    renderWithQuery(<AiForecastPanel context={aiContext} />);
+
+    await user.click(
+      screen.getByRole('button', { name: /use example question: do i need an umbrella tomorrow/i }),
+    );
+
+    expect(screen.getByLabelText(/forecast summary or question/i)).toHaveValue(
+      'Do I need an umbrella tomorrow?',
+    );
+  });
 });
 
 function renderWithQuery(ui: ReactElement) {
@@ -126,3 +189,33 @@ function renderWithQuery(ui: ReactElement) {
 
   return render(<QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>);
 }
+
+const aiContext: ForecastAiContext = {
+  location: {
+    label: 'Washington, District of Columbia, United States',
+    latitude: 38.9072,
+    longitude: -77.0369,
+  },
+  forecastPeriods: [
+    {
+      name: 'Today',
+      startTime: '2026-06-03T08:00:00-04:00',
+      endTime: '2026-06-03T18:00:00-04:00',
+      temperature: '82F',
+      precipitation: 60,
+      wind: '12 mph NW',
+      shortForecast: 'Showers Likely',
+      detailedForecast: 'Showers likely after 3pm.',
+    },
+  ],
+  alerts: [
+    {
+      event: 'Wind Advisory',
+      headline: 'Wind Advisory until 8 PM',
+      severity: 'Minor',
+      urgency: 'Expected',
+      expires: '2026-06-03T20:00:00-04:00',
+      description: 'Gusty winds expected.',
+    },
+  ],
+};

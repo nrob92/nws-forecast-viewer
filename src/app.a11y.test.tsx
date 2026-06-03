@@ -4,11 +4,13 @@ import type { ReactElement } from 'react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { axe } from 'vitest-axe';
 import { describe, expect, it } from 'vitest';
+import { AiForecastPanel } from './components/AiForecastPanel';
 import { AlertsPanel } from './components/AlertsPanel';
 import { AppShell } from './components/AppShell';
 import { ForecastCards } from './components/ForecastCards';
 import { HourlyCharts } from './components/HourlyCharts';
 import { LocationSearch } from './components/LocationSearch';
+import type { ForecastAiContext } from './lib/aiContext';
 import type { AlertSummary, ForecastPeriod, HourlyPoint } from './types/weather';
 
 const forecast: ForecastPeriod[] = [
@@ -74,6 +76,7 @@ describe('accessibility', () => {
     const { container } = renderWithQuery(
       <div>
         <LocationSearch onSelect={() => {}} recentLocations={[]} />
+        <AiForecastPanel context={aiContext} />
         <ForecastCards periods={forecast} />
         <HourlyCharts points={hourly} />
       </div>,
@@ -88,6 +91,27 @@ describe('accessibility', () => {
     expect((await axe(container)).violations).toHaveLength(0);
   });
 });
+
+const aiContext: ForecastAiContext = {
+  location: {
+    label: 'Washington, District of Columbia, United States',
+    latitude: 38.9072,
+    longitude: -77.0369,
+  },
+  forecastPeriods: [
+    {
+      name: 'Today',
+      startTime: '2026-06-03T08:00:00-04:00',
+      endTime: '2026-06-03T18:00:00-04:00',
+      temperature: '84F',
+      precipitation: 30,
+      wind: '8 mph SW',
+      shortForecast: 'Chance Showers',
+      detailedForecast: 'A chance of showers.',
+    },
+  ],
+  alerts: [],
+};
 
 function renderWithQuery(ui: ReactElement) {
   const queryClient = new QueryClient({
