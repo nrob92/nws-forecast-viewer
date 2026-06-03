@@ -30,8 +30,15 @@ export function ForecastPage() {
   const { selectedLocation, recentLocations, selectLocation } = useLocationState();
 
   useEffect(() => {
-    const lat = Number(searchParams.get('lat'));
-    const lon = Number(searchParams.get('lon'));
+    const rawLat = searchParams.get('lat');
+    const rawLon = searchParams.get('lon');
+
+    if (!rawLat || !rawLon) {
+      return;
+    }
+
+    const lat = Number(rawLat);
+    const lon = Number(rawLon);
     const label = searchParams.get('label') || 'Shared location';
 
     if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
