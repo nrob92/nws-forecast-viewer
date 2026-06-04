@@ -2,11 +2,9 @@
 
 Accessible React forecast visualization demo using the public National Weather Service API.
 
-30-second demo GIF placeholder: `docs/demo.gif`
+Live demo: https://nws-forecast-viewer.netlify.app/
 
-Live demo: _add Netlify URL after deployment_
-
-Repository: _add GitHub URL after push_
+Repository: https://github.com/nrob92/nws-forecast-viewer
 
 Personal demo using the public NWS API. Not affiliated with or endorsed by NOAA/NWS.
 
@@ -46,7 +44,7 @@ Set these values in `.env` before using live APIs:
 ```bash
 NWS_USER_AGENT="nws-forecast-viewer-demo/1.0 (you@example.com)"
 NOMINATIM_USER_AGENT="nws-forecast-viewer-demo/1.0 (you@example.com)"
-OPENAI_API_KEY="sk-your-openai-api-key"
+OPENAI_API_KEY="your-openai-api-key"
 ```
 
 Local Netlify dev runs the app and functions together at:
@@ -147,7 +145,6 @@ Testing approach:
 Known limitations:
 
 - Live data depends on api.weather.gov and Nominatim availability.
-- The 30-second demo GIF and live deployment URL are placeholders until deployment.
 
 ## Data and Attribution
 
@@ -164,6 +161,6 @@ Deploy on Netlify so `/api/geocode` and `/api/nws` resolve to Netlify Functions.
 
 1. Push the repo to GitHub as `nws-forecast-viewer`.
 2. Create a Netlify site from the GitHub repo.
-3. Set `NWS_USER_AGENT` and `NOMINATIM_USER_AGENT` in Netlify environment variables.
+3. Set `NWS_USER_AGENT`, `NOMINATIM_USER_AGENT`, and `OPENAI_API_KEY` in Netlify environment variables.
 4. Use the default build command from `netlify.toml`: `npm run build`.
-5. Add the live URL and demo GIF path to this README.
+5. Verify the live deployment after setting the environment variables.
