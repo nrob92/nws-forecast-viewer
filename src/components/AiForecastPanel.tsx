@@ -119,7 +119,7 @@ export function AiForecastPanel({ context }: AiForecastPanelProps) {
             {showExampleOverlay ? (
               <button
                 type="button"
-                className="absolute inset-y-0 left-0 right-0 truncate rounded-md px-[0.85rem] py-[0.72rem] text-left text-sm text-[#7b8791] transition-colors hover:text-[#52616f]"
+                className="absolute inset-y-0 left-0 right-0 truncate rounded-md px-[0.85rem] py-[0.72rem] text-left text-sm text-[#52616f] transition-colors hover:text-[#334554]"
                 onClick={applyExample}
                 aria-label={`Use example question: ${currentExample}`}
               >

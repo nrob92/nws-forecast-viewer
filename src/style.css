@@ -83,7 +83,8 @@ button {
 }
 
 .field::placeholder {
-  color: #7b8791;
+  color: #52616f;
+  opacity: 1;
 }
 
 .primary-button,
